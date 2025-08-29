@@ -1,0 +1,65 @@
+[gd_scene load_steps=5 format=3 uid="uid://c28btvpkwtdgb"]
+
+[ext_resource type="PackedScene" uid="uid://bf15cq7c6pxou" path="res://scenes/player.tscn" id="1_kle22"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8yvjr"]
+albedo_color = Color(0.2, 0.6, 0.2, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_yjqvs"]
+size = Vector2(100, 100)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qw3u2"]
+
+[node name="DebugScene" type="Node3D"]
+
+[node name="Player" parent="." instance=ExtResource("1_kle22")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_8yvjr")
+mesh = SubResource("PlaneMesh_yjqvs")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 10, 0)
+light_energy = 3.425
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 10, 0)
+current = true
+fov = 75.0
+
+[node name="Box1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, 5)
+mesh = SubResource("BoxMesh_qw3u2")
+
+[node name="Box2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, 5)
+mesh = SubResource("BoxMesh_qw3u2")
+
+[node name="Box3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -5)
+mesh = SubResource("BoxMesh_qw3u2")
+
+[node name="GridContainer" type="Node3D" parent="."]
+
+[node name="CSGBox3D" type="CSGBox3D" parent="GridContainer"]
+transform = Transform3D(1, 0, 0, 0, 0.1, 0, 0, 0, 1, 0, 0.05, 10)
+size = Vector3(100, 0.1, 0.1)
+material = SubResource("StandardMaterial3D_8yvjr")
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="GridContainer"]
+transform = Transform3D(1, 0, 0, 0, 0.1, 0, 0, 0, 1, 0, 0.05, -10)
+size = Vector3(100, 0.1, 0.1)
+material = SubResource("StandardMaterial3D_8yvjr")
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="GridContainer"]
+transform = Transform3D(0, 0, 1, 0, 0.1, 0, -1, 0, 0, 10, 0.05, 0)
+size = Vector3(100, 0.1, 0.1)
+material = SubResource("StandardMaterial3D_8yvjr")
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="GridContainer"]
+transform = Transform3D(0, 0, 1, 0, 0.1, 0, -1, 0, 0, -10, 0.05, 0)
+size = Vector3(100, 0.1, 0.1)
+material = SubResource("StandardMaterial3D_8yvjr")

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://cn8oirbww03by"]
+
+[ext_resource type="Script" path="res://scripts/starfield.gd" id="1_ys6rl"]
+
+[node name="Starfield" type="Node3D"]
+script = ExtResource("1_ys6rl")
+star_count = 3000
+field_size = Vector3(2000, 10, 2000)

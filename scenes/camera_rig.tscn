@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://l6oobcq18qpp"]
+
+[ext_resource type="Script" path="res://scripts/camera_rig.gd" id="1_a8kn4"]
+
+[node name="CameraRig" type="Node3D"]
+script = ExtResource("1_a8kn4")
+height = 60.0
+min_height = 5.0
+max_height = 70.0
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
+current = true
+fov = 30.0
+near = 0.015
+far = 1000.0
