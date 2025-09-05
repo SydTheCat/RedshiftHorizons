@@ -1,0 +1,52 @@
+[gd_scene load_steps=11 format=3 uid="uid://c28btvpkwtdga"]
+
+[ext_resource type="Script" path="res://scripts/world_root.gd" id="1_vor5j"]
+[ext_resource type="PackedScene" uid="uid://bf15cq7c6pxou" path="res://scenes/player.tscn" id="2_kle22"]
+[ext_resource type="PackedScene" uid="uid://l6oobcq18qpp" path="res://scenes/camera_rig.tscn" id="3_2gbr1"]
+[ext_resource type="PackedScene" uid="uid://8ab73o1yavq1" path="res://scenes/planet_earth.tscn" id="3_rodl6"]
+[ext_resource type="PackedScene" uid="uid://cn8oirbww03by" path="res://scenes/starfield.tscn" id="4_xtgr1"]
+[ext_resource type="PackedScene" uid="uid://chedbgqf023jd" path="res://scenes/minimap.tscn" id="7_minimap"]
+[ext_resource type="PackedScene" uid="uid://bhajkf3u0ybyn" path="res://scenes/planet_data_ui.tscn" id="8_planet_ui"]
+[ext_resource type="Script" path="res://scripts/asteroid_spawner.gd" id="9_spawner"]
+[ext_resource type="Script" path="res://scripts/ui_manager.gd" id="10_ui_manager"]
+[ext_resource type="PackedScene" uid="uid://b00a542pwkxjr" path="res://scenes/moving_asteroid.tscn" id="11_moving_asteroid"]
+
+[node name="WorldRoot" type="Node3D"]
+script = ExtResource("1_vor5j")
+
+[node name="WorldSpace" type="Node3D" parent="."]
+
+[node name="Player" parent="WorldSpace" instance=ExtResource("2_kle22")]
+
+[node name="PlanetEarth" parent="WorldSpace" instance=ExtResource("3_rodl6")]
+transform = Transform3D(4.99363, 0, 0, 0, 4.99363, 0, 0, 0, 4.99363, 1.56119, -1014.95, -821.451)
+
+[node name="Starfield" parent="." instance=ExtResource("4_xtgr1")]
+
+[node name="CameraRig" parent="." instance=ExtResource("3_2gbr1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.387515, -0.657519, -0.646142, 0, -0.700909, 0.71325, -0.921863, -0.276396, -0.271613, 0, 34.5201, 0)
+light_energy = 5.0
+shadow_enabled = true
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Minimap" parent="UI" instance=ExtResource("7_minimap")]
+
+[node name="PlanetDataUI" parent="UI" instance=ExtResource("8_planet_ui")]
+
+[node name="UIManager" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("10_ui_manager")
+
+[node name="AsteroidSpawner" type="Node3D" parent="."]
+script = ExtResource("9_spawner")
+asteroid_scene = ExtResource("11_moving_asteroid")
+player_path = NodePath("WorldSpace/Player")

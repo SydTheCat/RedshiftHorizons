@@ -1,0 +1,39 @@
+[gd_scene load_steps=3 format=3 uid="uid://chedbgqf023jd"]
+
+[ext_resource type="Script" path="res://scripts/minimap.gd" id="1_minimap"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_border"]
+bg_color = Color(0, 0, 0, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.8, 1, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="Minimap" type="Control" groups=["minimap"]]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_minimap")
+scale_factor = 0.1
+
+[node name="MinimapContainer" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_border")
+
+[node name="SubViewport" type="SubViewport" parent="MinimapContainer"]
+render_target_update_mode = 3
+
+[node name="MinimapCamera" type="Camera3D" parent="MinimapContainer/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 500, 0)
+projection = 1
+size = 250.0
+far = 2000.0

@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3 uid="uid://c28btvpkwtdga"]
+
+[ext_resource type="Script" path="res://scripts/world_root.gd" id="1_wu4g3"]
+[ext_resource type="PackedScene" uid="uid://bf15cq7c6pxou" path="res://scenes/player.tscn" id="1_ybjd7"]
+[ext_resource type="PackedScene" uid="uid://l6oobcq18qpp" path="res://scenes/camera_rig.tscn" id="2_p6dlk"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_qw3u2"]
+
+[node name="WorldRoot" type="Node3D"]
+script = ExtResource("1_wu4g3")
+
+[node name="WorldSpace" type="Node3D" parent="."]
+
+[node name="Player" parent="WorldSpace" instance=ExtResource("1_ybjd7")]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WorldSpace"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44, 0, 0)
+mesh = SubResource("SphereMesh_qw3u2")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="WorldSpace"]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, -29.9059, 0, -38.4992)
+mesh = SubResource("SphereMesh_qw3u2")
+
+[node name="CameraRig" parent="." instance=ExtResource("2_p6dlk")]

@@ -1,0 +1,104 @@
+[gd_scene load_steps=3 format=3 uid="uid://bqx7r3n8m9k2p"]
+
+[ext_resource type="Script" path="res://scripts/asteroid_info_display.gd" id="1_asteroid_info"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.0588235, 0.0588235, 0.0980392, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.0, 1.0, 1.0, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="AsteroidInfoDisplay" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 50.0
+offset_top = 50.0
+offset_right = 350.0
+offset_bottom = 250.0
+mouse_filter = 2
+script = ExtResource("1_asteroid_info")
+
+[node name="Background" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Background"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ScanHeader" type="HBoxContainer" parent="Background/VBoxContainer"]
+layout_mode = 2
+
+[node name="ScanIcon" type="Label" parent="Background/VBoxContainer/ScanHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.0, 1.0, 1.0, 1)
+theme_override_font_sizes/font_size = 16
+text = "◉"
+
+[node name="ScanStatus" type="Label" parent="Background/VBoxContainer/ScanHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.0, 1.0, 1.0, 1)
+theme_override_font_sizes/font_size = 14
+text = "SCANNING..."
+
+[node name="ProgressBar" type="ProgressBar" parent="Background/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/fill = Color(0.0, 1.0, 1.0, 0.8)
+max_value = 100.0
+show_percentage = false
+
+[node name="HSeparator" type="HSeparator" parent="Background/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/separator = Color(0.0, 1.0, 1.0, 0.5)
+
+[node name="InfoContainer" type="VBoxContainer" parent="Background/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="MineralType" type="Label" parent="Background/VBoxContainer/InfoContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1.0, 1.0, 1.0, 1)
+theme_override_font_sizes/font_size = 12
+text = ""
+autowrap_mode = 2
+
+[node name="Composition" type="Label" parent="Background/VBoxContainer/InfoContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 11
+text = ""
+autowrap_mode = 2
+
+[node name="Amount" type="Label" parent="Background/VBoxContainer/InfoContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.0, 1.0, 0.5, 1)
+theme_override_font_sizes/font_size = 11
+text = ""
+autowrap_mode = 2
+
+[node name="Value" type="Label" parent="Background/VBoxContainer/InfoContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1.0, 0.8, 0.0, 1)
+theme_override_font_sizes/font_size = 11
+text = ""
+autowrap_mode = 2
+
+[node name="Hardness" type="Label" parent="Background/VBoxContainer/InfoContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1.0, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 11
+text = ""
+autowrap_mode = 2

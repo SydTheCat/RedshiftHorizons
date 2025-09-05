@@ -1,0 +1,57 @@
+[gd_scene load_steps=4 format=3 uid="uid://bvqx8r2n3m4p5"]
+
+[ext_resource type="Script" path="res://scripts/scan_circle.gd" id="1_scan_circle"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_1"]
+blend_mode = 1
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_2"]
+blend_mode = 1
+
+[node name="ScanCircle" type="Control"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -50.0
+offset_right = 50.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_scan_circle")
+
+[node name="OuterRing" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("CanvasItemMaterial_1")
+
+[node name="InnerRing" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("CanvasItemMaterial_2")
+
+[node name="ScanLines" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+autoplay = "scan_animation"

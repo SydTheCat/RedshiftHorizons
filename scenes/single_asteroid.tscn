@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=3 uid="uid://br1dg32dtdm6t"]
+
+[ext_resource type="Script" path="res://scripts/asteroid.gd" id="1_qvgca"]
+[ext_resource type="ArrayMesh" uid="uid://cno6v7veyxhfy" path="res://assets/asteroid.obj" id="2_q5krw"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_u3m5i"]
+
+[sub_resource type="GDScript" id="GDScript_y1fcc"]
+script/source = "extends Node3D
+
+func _ready():
+	print(\"Single asteroid test scene loaded\")
+"
+
+[node name="SingleAsteroidTest" type="Node3D"]
+script = SubResource("GDScript_y1fcc")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 5, 0)
+
+[node name="Asteroid" type="StaticBody3D" parent="."]
+script = ExtResource("1_qvgca")
+
+[node name="AsteroidMesh" type="MeshInstance3D" parent="Asteroid"]
+mesh = ExtResource("2_q5krw")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Asteroid"]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
+shape = SubResource("SphereShape3D_u3m5i")
+
+[node name="Label" type="Label" parent="."]
+offset_left = 15.0
+offset_top = 15.0
+offset_right = 352.0
+offset_bottom = 41.0
+text = "Single Asteroid Test - Using the original asteroid.gd script"
