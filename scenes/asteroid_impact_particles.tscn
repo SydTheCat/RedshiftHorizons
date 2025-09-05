@@ -1,0 +1,44 @@
+[gd_scene load_steps=6 format=3 uid="uid://cphre5oam57es"]
+
+[sub_resource type="Gradient" id="Gradient_qxdpq"]
+offsets = PackedFloat32Array(0, 0.2, 0.8, 1)
+colors = PackedColorArray(1, 0.6, 0.2, 1, 1, 0.5, 0.2, 0.8, 0.3, 0.3, 0.3, 0.4, 0, 0, 0, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_0nryg"]
+gradient = SubResource("Gradient_qxdpq")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_vt6pk"]
+emission_shape = 1
+emission_sphere_radius = 0.2
+direction = Vector3(0, 0, 0)
+spread = 180.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 2.0
+initial_velocity_max = 5.0
+scale_min = 0.2
+scale_max = 0.5
+color_ramp = SubResource("GradientTexture1D_0nryg")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2igsn"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="SphereMesh" id="SphereMesh_tdhk7"]
+material = SubResource("StandardMaterial3D_2igsn")
+radius = 0.1
+height = 0.2
+
+[node name="AsteroidImpactParticles" type="GPUParticles3D"]
+emitting = false
+amount = 30
+lifetime = 0.8
+one_shot = true
+explosiveness = 0.9
+process_material = SubResource("ParticleProcessMaterial_vt6pk")
+draw_pass_1 = SubResource("SphereMesh_tdhk7")

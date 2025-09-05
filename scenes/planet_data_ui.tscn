@@ -1,0 +1,201 @@
+[gd_scene load_steps=5 format=3 uid="uid://bhajkf3u0ybyn"]
+
+[ext_resource type="Script" path="res://scripts/planet_data_ui.gd" id="1_jyfml"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3rwb5"]
+bg_color = Color(0.0980392, 0.0980392, 0.156863, 0.803922)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.0196078, 0.541176, 0.698039, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fe2pj"]
+bg_color = Color(0.0196078, 0.541176, 0.698039, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.164706, 0.8, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qgyj1"]
+bg_color = Color(0.0313726, 0.34902, 0.439216, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.164706, 0.8, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="PlanetDataUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_jyfml")
+
+[node name="PlanetDataPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.0
+anchor_right = 0.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 320.0
+offset_bottom = 310.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_3rwb5")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PlanetDataPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PlanetName" type="Label" parent="PlanetDataPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.164706, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "Unknown Planet"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="PlanetDataPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Classification" type="HBoxContainer" parent="PlanetDataPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PlanetDataPanel/VBoxContainer/Classification"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Classification:"
+
+[node name="Value" type="Label" parent="PlanetDataPanel/VBoxContainer/Classification"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Terrestrial Planet"
+
+[node name="Size" type="HBoxContainer" parent="PlanetDataPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PlanetDataPanel/VBoxContainer/Size"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Size (Diameter):"
+
+[node name="Value" type="Label" parent="PlanetDataPanel/VBoxContainer/Size"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "12,756 km"
+
+[node name="Mass" type="HBoxContainer" parent="PlanetDataPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PlanetDataPanel/VBoxContainer/Mass"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Mass:"
+
+[node name="Value" type="Label" parent="PlanetDataPanel/VBoxContainer/Mass"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "5.97 x 10^24 kg"
+
+[node name="Gravity" type="HBoxContainer" parent="PlanetDataPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PlanetDataPanel/VBoxContainer/Gravity"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Gravity:"
+
+[node name="Value" type="Label" parent="PlanetDataPanel/VBoxContainer/Gravity"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "9.8 m/s²"
+
+[node name="Atmosphere" type="HBoxContainer" parent="PlanetDataPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PlanetDataPanel/VBoxContainer/Atmosphere"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Atmosphere:"
+
+[node name="Value" type="Label" parent="PlanetDataPanel/VBoxContainer/Atmosphere"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Nitrogen, Oxygen"
+autowrap_mode = 2
+
+[node name="Resources" type="HBoxContainer" parent="PlanetDataPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PlanetDataPanel/VBoxContainer/Resources"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Resources:"
+
+[node name="Value" type="Label" parent="PlanetDataPanel/VBoxContainer/Resources"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Water, Minerals"
+autowrap_mode = 2
+
+[node name="Habitable" type="HBoxContainer" parent="PlanetDataPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PlanetDataPanel/VBoxContainer/Habitable"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Habitable:"
+
+[node name="Value" type="Label" parent="PlanetDataPanel/VBoxContainer/Habitable"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Yes"
+
+[node name="Temperature" type="HBoxContainer" parent="PlanetDataPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PlanetDataPanel/VBoxContainer/Temperature"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Temperature:"
+
+[node name="Value" type="Label" parent="PlanetDataPanel/VBoxContainer/Temperature"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "15.0 °C"
+
+[node name="ScanButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -75.0
+offset_top = -80.0
+offset_right = 75.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+focus_mode = 0
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_fe2pj")
+theme_override_styles/hover = SubResource("StyleBoxFlat_qgyj1")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_qgyj1")
+text = "SCAN"

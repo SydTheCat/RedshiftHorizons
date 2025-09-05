@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://b00a542pwkxjr"]
+
+[ext_resource type="Script" path="res://scripts/moving_asteroid.gd" id="1_asteroid"]
+[ext_resource type="ArrayMesh" uid="uid://cno6v7veyxhfy" path="res://assets/asteroid.obj" id="2_asteroid_mesh"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_akfqu"]
+
+[node name="MovingAsteroid" type="StaticBody3D"]
+transform = Transform3D(0.999998, 0.00189746, -0.000881448, -0.00189686, 0.999998, 0.00067818, 0.000882746, -0.000676489, 0.999999, 0, 0, 0)
+input_ray_pickable = true
+script = ExtResource("1_asteroid")
+
+[node name="AsteroidMesh" type="MeshInstance3D" parent="."]
+mesh = ExtResource("2_asteroid_mesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(3.58991, 0, 0, 0, 3.52121, 1.09591, 0, -1.42738, 2.7035, 0.422664, 0, -0.162616)
+shape = SubResource("SphereShape3D_akfqu")
