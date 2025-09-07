@@ -1,0 +1,47 @@
+[gd_scene load_steps=7 format=3 uid="uid://bf15cq7c6pxou"]
+
+[ext_resource type="Script" uid="uid://dbc051fup0fhn" path="res://scripts/player.gd" id="1_qetnw"]
+[ext_resource type="PackedScene" uid="uid://b4g3qg8t2o5ks" path="res://assets/ship.glb" id="2_ship"]
+[ext_resource type="PackedScene" uid="uid://dg8nrbvey6dnc" path="res://scenes/particle_laser_beam.tscn" id="3_laser"]
+[ext_resource type="AudioStream" uid="uid://1xsg5dkamqgr" path="res://assets/Ship_thrust.mp3" id="4_thrust_audio"]
+[ext_resource type="AudioStream" uid="uid://dg2we6dn7xf7o" path="res://assets/laser-weld.mp3" id="5_laser_audio"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_g2els"]
+size = Vector3(1, 2.98959, 0.511948)
+
+[node name="Player" type="CharacterBody3D" groups=["player"]]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+script = ExtResource("1_qetnw")
+turn_speed_deg = 200.0
+space_drag = 0.99
+laser_color = Color(1, 0.3, 0.1, 1)
+max_cargo_space = 500.0
+
+[node name="ShipModel" parent="." instance=ExtResource("2_ship")]
+transform = Transform3D(1.91069e-16, 4.37114e-09, -0.1, 0.1, -4.37114e-09, 0, -4.37114e-09, -0.1, -4.37114e-09, 0, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(2.86813, 0, 0, 0, 2.86813, 0, 0, 0, 2.86813, 0, 0.121883, -1.01509)
+shape = SubResource("BoxShape3D_g2els")
+
+[node name="LeftWeaponMount" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.804404, -1.44561, -0.570234)
+
+[node name="LeftLaser" parent="LeftWeaponMount" instance=ExtResource("3_laser")]
+transform = Transform3D(1.19249e-08, -1, -4.37114e-08, 0, -4.37114e-08, 1, -1, -1.19249e-08, 5.21253e-16, 0, 0, 0)
+laser_color = Color(1, 1, 1, 1)
+
+[node name="RightWeaponMount" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.797699, -1.46277, -0.534182)
+
+[node name="RightLaser" parent="RightWeaponMount" instance=ExtResource("3_laser")]
+transform = Transform3D(1.19249e-08, -1, -4.37114e-08, 0, -4.37114e-08, 1, -1, -1.19249e-08, 5.21253e-16, 0, 0, 0)
+laser_color = Color(1, 1, 1, 1)
+
+[node name="ThrustAudio" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("4_thrust_audio")
+volume_db = -10.0
+
+[node name="LaserAudio" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("5_laser_audio")
+volume_db = -8.0

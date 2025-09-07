@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cn8oirbww03by"]
+
+[ext_resource type="Script" uid="uid://cm0wkevbvrvyd" path="res://scripts/starfield.gd" id="1_ys6rl"]
+
+[node name="Starfield" type="Node3D"]
+script = ExtResource("1_ys6rl")
