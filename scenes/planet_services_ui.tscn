@@ -1,0 +1,68 @@
+[gd_scene load_steps=2 format=3 uid="uid://bxk4n2q8r7v8c"]
+
+[ext_resource type="Script" path="res://scripts/planet_services_ui.gd" id="1_0h4xk"]
+
+[node name="PlanetServicesUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("1_0h4xk")
+
+[node name="ServicePanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -100.0
+offset_right = -20.0
+offset_bottom = 100.0
+modulate = Color(1, 1, 1, 0.9)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ServicePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+
+[node name="TitleLabel" type="Label" parent="ServicePanel/VBoxContainer"]
+layout_mode = 2
+text = "PLANET SERVICES"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="ServicePanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="RefuelButton" type="Button" parent="ServicePanel/VBoxContainer"]
+layout_mode = 2
+text = "REFUEL SHIP"
+disabled = true
+
+[node name="RepairButton" type="Button" parent="ServicePanel/VBoxContainer"]
+layout_mode = 2
+text = "REPAIR HULL"
+disabled = true
+
+[node name="SellOreButton" type="Button" parent="ServicePanel/VBoxContainer"]
+layout_mode = 2
+text = "SELL ORE"
+disabled = true
+
+[node name="HSeparator2" type="HSeparator" parent="ServicePanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="ServicePanel/VBoxContainer"]
+layout_mode = 2
+text = "No services available"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2

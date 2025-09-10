@@ -4,10 +4,18 @@
 [ext_resource type="Script" uid="uid://cv4f70mfeq18f" path="res://scripts/planet.gd" id="2_planet"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_yj2el"]
+height = 3.63623
 
 [node name="PlanetEarth" type="Node3D" groups=["planets"]]
 script = ExtResource("2_planet")
 planet_name = "Earth (Sol)"
+has_fuel_depot = true
+fuel_cost_per_unit = 1.5
+depot_name = "Earth Orbital Refinery"
+has_ore_market = true
+has_repair_bay = true
+repair_cost_per_unit = 2.5
+repair_bay_name = "Earth Shipyard"
 
 [node name="Planet" parent="." instance=ExtResource("1_b5y3v")]
 transform = Transform3D(10.1139, 0, 0, 0, -4.42091e-07, 10.1139, 0, -10.1139, -4.42091e-07, 0, 0, 0)
@@ -21,5 +29,5 @@ omni_range = 50.0
 collision_layer = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
-transform = Transform3D(30, 0, 0, 0, 154.188, 0, 0, 0, 30, 0, 131.1, 0)
+transform = Transform3D(30, 0, 0, 0, 154.188, 0, 0, 0, 30, 0, 257.244, 0)
 shape = SubResource("CylinderShape3D_yj2el")

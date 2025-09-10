@@ -92,6 +92,19 @@ func display_planet_data(planet):
 		else:
 			temperature_label.text = "Unknown"
 		
+		# Add fuel depot information if available
+		print("Checking fuel depot - has_fuel_depot: ", planet.get("has_fuel_depot"))
+		if planet.get("has_fuel_depot") != null and planet.get("has_fuel_depot"):
+			var depot_name = planet.get("depot_name") if planet.get("depot_name") else "Fuel Depot"
+			var cost_per_unit = planet.get("fuel_cost_per_unit") if planet.get("fuel_cost_per_unit") else 2
+			
+			print("Adding fuel depot info: ", depot_name, " at ", cost_per_unit, " credits/unit")
+			# Update resources to include fuel depot info
+			var current_resources = resources_label.text
+			resources_label.text = current_resources + "\n🛸 " + depot_name + " (" + str(cost_per_unit) + " credits/unit)"
+		else:
+			print("No fuel depot found on planet")
+		
 		# Show the data panel
 		planet_data_panel.visible = true
 		planet_data_panel.show()

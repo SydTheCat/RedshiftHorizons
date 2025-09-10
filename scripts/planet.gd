@@ -6,13 +6,30 @@ var highlight_mesh: MeshInstance3D
 @export var rotation_speed: float = 0.3  # Rotation speed in radians per second
 
 # Planet data variables
-@export var planet_name: String = "Unknown Planet"
+@export var planet_name: String = "Earth"
 @export var planet_type: String = "Terrestrial"
 @export var atmosphere: String = "Nitrogen, Oxygen"
 @export var habitable: bool = true
 @export var temperature: float = 15.0  # Celsius
-@export var resources: String = "Water, Minerals"
-@export var description: String = "A habitable planet with diverse ecosystems."
+@export var resources: String = "Water, Minerals, Fossil Fuels"
+@export var description: String = "The cradle of humanity with advanced orbital infrastructure."
+
+# Fuel depot properties
+@export var has_fuel_depot: bool = false
+@export var fuel_cost_per_unit: float = 2.0
+@export var depot_name: String = "Fuel Depot"
+
+# Ore market properties
+@export var has_ore_market: bool = false
+
+# Repair bay properties
+@export var has_repair_bay: bool = false
+@export var repair_cost_per_unit: float = 3.0
+@export var repair_bay_name: String = "Repair Bay"
+
+# Refinery properties
+@export var has_refinery: bool = false
+@export var refinery_name: String = "Orbital Refinery"
 
 # Scanning state
 var is_scanned: bool = false
@@ -40,6 +57,15 @@ func _ready():
 	
 	# Add to the planets group for easier scanning detection
 	add_to_group("planets")
+	
+	# Configure Earth-specific services
+	if planet_name.contains("Earth") or planet_name == "Earth":
+		has_fuel_depot = true
+		has_repair_bay = true
+		has_refinery = true
+		fuel_cost_per_unit = 2.0
+		repair_cost_per_unit = 3.0
+		print("DEBUG: Earth services configured - refinery enabled")
 	
 	# Planet initialized - Added to 'planets' group
 	
@@ -77,6 +103,10 @@ func _on_body_entered(body):
 		# Set in scan range flag
 		in_scan_range = true
 		
+		# Notify player that planet is in scan range
+		if body.has_method("on_planet_scan_range_entered"):
+			body.on_planet_scan_range_entered(self)
+		
 func _on_body_exited(body):
 	# Check if the exiting body is the player
 	if body.is_in_group("player"):
@@ -84,6 +114,10 @@ func _on_body_exited(body):
 		highlight_mesh.visible = false
 		# Clear scan range flag
 		in_scan_range = false
+		
+		# Notify player that planet is out of scan range
+		if body.has_method("on_planet_scan_range_exited"):
+			body.on_planet_scan_range_exited(self)
 
 # Called every frame to handle rotation
 func _process(delta):

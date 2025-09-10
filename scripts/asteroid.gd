@@ -9,6 +9,7 @@ extends StaticBody3D
 # Mining properties
 var mineral_data: MultiMineralData
 var is_mouse_hovering: bool = false
+var destroyed_by_collision: bool = false  # Track if destroyed by collision vs laser
 
 # Cached nodes
 var mesh_instance: MeshInstance3D
@@ -81,13 +82,17 @@ func _process(delta):
 			active_particles.remove_at(i)
 
 # Handle damage
-func take_damage(amount: float):
+func take_damage(amount: float, from_collision: bool = false):
 	# Scale damage based on total mineral hardness - harder minerals take much less damage
 	var damage_resistance = 0.0
 	if mineral_data:
 		damage_resistance = (mineral_data.total_hardness / 10.0) * 0.9  # 0.18 to 0.9 resistance
 	
 	health -= amount * (1.0 - damage_resistance)  # Heavily reduce damage based on hardness
+	
+	# Mark if this damage is from collision
+	if from_collision:
+		destroyed_by_collision = true
 	
 	# Try to load particle scene if not already loaded
 	if impact_particles_scene == null:
@@ -237,7 +242,7 @@ func _on_destroyed():
 
 # Drop minerals when asteroid is destroyed
 func drop_minerals():
-	if mineral_data:
+	if mineral_data and not destroyed_by_collision:  # Only drop minerals if not destroyed by collision
 		# Find the player to give minerals to
 		var player = get_tree().get_first_node_in_group("player")
 		if player and player.has_method("collect_multi_minerals"):
@@ -248,3 +253,5 @@ func drop_minerals():
 			if ui_manager and ui_manager.has_method("show_collection_notification"):
 				var message = "Collected multi-ore asteroid (+%d credits)" % mineral_data.get_total_value()
 				ui_manager.show_collection_notification(message)
+	elif destroyed_by_collision:
+		print("Asteroid destroyed by collision - no minerals collected")

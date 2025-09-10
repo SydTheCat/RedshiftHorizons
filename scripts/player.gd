@@ -36,8 +36,33 @@ var is_scanning_asteroid: bool = false
 var is_scan_locked: bool = false
 var locked_cursor_position: Vector2
 
+# Planet scanning
+var planet_data_ui_scene: PackedScene
+var planet_data_ui_instance: Control
+var current_planet_in_range: Node3D = null
+
+# Planet services UI
+var planet_services_ui_scene: PackedScene
+var planet_services_ui_instance: Control
+
+# Refueling system
+var is_refueling: bool = false
+var refuel_start_fuel: float = 0.0
+var refuel_target_fuel: float = 0.0
+var refuel_speed: float = 5.0  # Units per second
+var refuel_message_timer: float = 0.0
+
+# Repair system
+var is_repairing: bool = false
+var repair_start_hull: float = 0.0
+var repair_target_hull: float = 0.0
+var repair_speed: float = 4.0  # Units per second
+var repair_message_timer: float = 0.0
+
 # Mining and inventory
 var inventory: Dictionary = {}
+var mineral_inventory: Array[MineralData] = []
+var ingot_inventory: Array = []
 var total_credits: int = 0
 @export var max_cargo_space: float = 100.0
 
@@ -134,6 +159,38 @@ func _ready() -> void:
 		print("Player: Asteroid info display loaded and initialized")
 	else:
 		push_warning("Player: Asteroid info display scene not found")
+	
+	# Load planet data UI scene
+	if ResourceLoader.exists("res://scenes/planet_data_ui.tscn"):
+		planet_data_ui_scene = load("res://scenes/planet_data_ui.tscn")
+		planet_data_ui_instance = planet_data_ui_scene.instantiate()
+		
+		# Add to UI layer
+		if ui_layer:
+			ui_layer.add_child(planet_data_ui_instance)
+		else:
+			get_tree().current_scene.add_child(planet_data_ui_instance)
+		
+		planet_data_ui_instance.visible = false
+		print("Player: Planet data UI loaded and initialized")
+	else:
+		push_warning("Player: Planet data UI scene not found")
+	
+	# Load planet services UI scene
+	if ResourceLoader.exists("res://scenes/planet_services_ui.tscn"):
+		planet_services_ui_scene = load("res://scenes/planet_services_ui.tscn")
+		planet_services_ui_instance = planet_services_ui_scene.instantiate()
+		
+		# Add to UI layer
+		if ui_layer:
+			ui_layer.add_child(planet_services_ui_instance)
+		else:
+			get_tree().current_scene.add_child(planet_services_ui_instance)
+		
+		planet_services_ui_instance.visible = false
+		print("Player: Planet services UI loaded and initialized")
+	else:
+		push_warning("Player: Planet services UI scene not found")
 
 # Ship status methods for UI
 
@@ -161,9 +218,6 @@ func refuel(amount: float):
 func ship_explode():
 	print("SHIP DESTROYED! GAME OVER")
 	
-	# Set game over state
-	game_over_active = true
-	
 	# Disable player movement but keep input processing for restart
 	set_physics_process(false)
 	
@@ -175,25 +229,146 @@ func ship_explode():
 	show_game_over_screen()
 
 func create_explosion_effect():
-	# Create explosion particles if available
+	print("Creating ship explosion effect at position: ", global_position)
+	
+	# Create multiple explosion particle systems for dramatic effect
 	var explosion_scene = load("res://scenes/asteroid_impact_particles.tscn")
 	if explosion_scene:
-		var explosion = explosion_scene.instantiate()
-		get_parent().add_child(explosion)
-		explosion.global_position = global_position
-		explosion.scale = Vector3(3.0, 3.0, 3.0)  # Make it bigger for ship explosion
+		print("Explosion scene loaded successfully")
 		
-		# Start particle emission
-		if explosion.has_method("emitting"):
-			explosion.emitting = true
+		# Main massive explosion
+		var main_explosion = explosion_scene.instantiate()
+		get_parent().add_child(main_explosion)
+		main_explosion.global_position = global_position
+		main_explosion.scale = Vector3(8.0, 8.0, 8.0)  # Much bigger explosion
+		
+		print("Main explosion created and positioned")
+		
+		# Configure main explosion - use direct property access instead of has_method
+		main_explosion.emitting = true
+		main_explosion.amount = 500  # Massive particle count
+		main_explosion.lifetime = 4.0  # Longer lasting
+		main_explosion.explosiveness = 1.0  # All particles at once
+		
+		# Configure process material if it exists
+		if main_explosion.process_material:
+			print("Configuring main explosion process material")
+			main_explosion.process_material.initial_velocity_min = 25.0
+			main_explosion.process_material.initial_velocity_max = 50.0
+			main_explosion.process_material.emission_sphere_radius = 3.0
+			main_explosion.process_material.scale_min = 1.5
+			main_explosion.process_material.scale_max = 4.0
+		else:
+			print("Warning: Main explosion has no process_material")
+		
+		# Create secondary explosions without await (to avoid blocking)
+		create_secondary_explosions(explosion_scene)
+	else:
+		print("ERROR: Could not load explosion scene from res://scenes/asteroid_impact_particles.tscn")
+	
+	# Play dramatic explosion sound
+	if thrust_audio:  # Reuse existing audio player for explosion sound
+		# Create a dedicated explosion audio player
+		var explosion_audio = AudioStreamPlayer3D.new()
+		get_parent().add_child(explosion_audio)
+		explosion_audio.global_position = global_position
+		explosion_audio.volume_db = 5.0  # Loud explosion
+		
+		# Try to load explosion sound, fallback to thrust sound if not available
+		if ResourceLoader.exists("res://assets/explosion.mp3"):
+			explosion_audio.stream = load("res://assets/explosion.mp3")
+		elif ResourceLoader.exists("res://assets/small-rock-break.mp3"):
+			explosion_audio.stream = load("res://assets/small-rock-break.mp3")
+		
+		if explosion_audio.stream:
+			explosion_audio.play()
+			# Remove audio player after sound finishes
+			explosion_audio.finished.connect(func(): explosion_audio.queue_free())
 	
 	# Hide the ship model
 	visible = false
 	
-	# Add screen shake for dramatic effect
+	# Add INTENSE screen shake for dramatic effect
 	var camera_rig = get_node_or_null("../CameraRig")
 	if camera_rig and camera_rig.has_method("add_trauma"):
-		camera_rig.add_trauma(1.0)  # Maximum screen shake
+		camera_rig.add_trauma(2.0)  # Double maximum screen shake
+		
+		# Add multiple trauma waves for prolonged shaking
+		await get_tree().create_timer(0.3).timeout
+		camera_rig.add_trauma(1.5)
+		await get_tree().create_timer(0.5).timeout
+		camera_rig.add_trauma(1.0)
+	
+	# Create debris effect - spawn smaller "ship fragments"
+	create_ship_debris()
+
+# Create secondary explosion waves with timing
+func create_secondary_explosions(explosion_scene: PackedScene):
+	for i in range(3):
+		var timer = get_tree().create_timer(0.2 * i)
+		timer.timeout.connect(func():
+			var secondary_explosion = explosion_scene.instantiate()
+			get_parent().add_child(secondary_explosion)
+			secondary_explosion.global_position = global_position + Vector3(randf_range(-2, 2), randf_range(-2, 2), randf_range(-2, 2))
+			secondary_explosion.scale = Vector3(5.0, 5.0, 5.0)
+			
+			secondary_explosion.emitting = true
+			secondary_explosion.amount = 200
+			secondary_explosion.lifetime = 3.0
+			secondary_explosion.explosiveness = 1.0
+			
+			print("Secondary explosion ", i + 1, " created")
+		)
+
+# Create ship debris fragments for dramatic explosion
+func create_ship_debris():
+	# Create multiple debris pieces that fly away from the explosion
+	for i in range(8):  # 8 debris fragments
+		var debris = MeshInstance3D.new()
+		get_parent().add_child(debris)
+		
+		# Create a small cube mesh for debris
+		var cube_mesh = BoxMesh.new()
+		cube_mesh.size = Vector3(0.3, 0.3, 0.3)
+		debris.mesh = cube_mesh
+		
+		# Position debris at ship location
+		debris.global_position = global_position
+		
+		# Give debris a random color (ship material colors)
+		var material = StandardMaterial3D.new()
+		material.albedo_color = Color(randf_range(0.3, 0.8), randf_range(0.3, 0.8), randf_range(0.3, 0.8))
+		material.metallic = 0.7
+		material.roughness = 0.3
+		debris.material_override = material
+		
+		# Add physics body for realistic movement
+		var rigid_body = RigidBody3D.new()
+		get_parent().add_child(rigid_body)
+		rigid_body.global_position = global_position + Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1))
+		
+		# Move mesh to rigid body
+		debris.get_parent().remove_child(debris)
+		rigid_body.add_child(debris)
+		debris.position = Vector3.ZERO
+		
+		# Add collision shape
+		var collision_shape = CollisionShape3D.new()
+		var box_shape = BoxShape3D.new()
+		box_shape.size = Vector3(0.3, 0.3, 0.3)
+		collision_shape.shape = box_shape
+		rigid_body.add_child(collision_shape)
+		
+		# Apply explosive force to debris
+		var explosion_force = Vector3(randf_range(-30, 30), randf_range(-30, 30), randf_range(-30, 30))
+		rigid_body.linear_velocity = explosion_force
+		rigid_body.angular_velocity = Vector3(randf_range(-10, 10), randf_range(-10, 10), randf_range(-10, 10))
+		
+		# Make debris fade out and disappear after 5 seconds
+		var tween = create_tween()
+		tween.tween_interval(3.0)  # Wait 3 seconds before fading
+		tween.tween_method(func(alpha): if is_instance_valid(debris) and debris.material_override: debris.material_override.albedo_color.a = alpha, 1.0, 0.0, 2.0)
+		tween.tween_callback(func(): if is_instance_valid(rigid_body): rigid_body.queue_free())
 
 func show_game_over_screen():
 	# Create game over UI
@@ -213,8 +388,9 @@ func show_game_over_screen():
 	title_label.add_theme_color_override("font_color", Color.RED)
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	title_label.position.y -= 50
+	title_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	title_label.position.y = get_viewport().get_visible_rect().size.y * 0.35  # 35% from top
+	title_label.position.x -= 80  # Move 10 characters left (approx 8 pixels per character)
 	game_over_ui.add_child(title_label)
 	
 	# Ship destroyed message
@@ -225,9 +401,10 @@ func show_game_over_screen():
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	message_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	message_label.position.y = 0  # Perfect center
 	game_over_ui.add_child(message_label)
 	
-	# Continue instruction
+	# Continue instruction (initially hidden)
 	var continue_label = Label.new()
 	continue_label.text = "Press any button to continue"
 	continue_label.add_theme_font_size_override("font_size", 16)
@@ -235,56 +412,87 @@ func show_game_over_screen():
 	continue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	continue_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	continue_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	continue_label.position.y += 50
+	continue_label.position.y = 80  # Fixed position below center message
+	continue_label.modulate.a = 0.0  # Start invisible
 	game_over_ui.add_child(continue_label)
 	
 	# Add to scene
 	get_tree().current_scene.add_child(game_over_ui)
+	
+	# Wait 3 seconds before showing the continue prompt and enabling restart
+	await get_tree().create_timer(3.0).timeout
+	
+	# Fade in the continue prompt
+	var tween = create_tween()
+	tween.tween_property(continue_label, "modulate:a", 1.0, 1.0)
+	
+	# Enable restart input after the delay
+	game_over_active = true
 
 # Handle collision with asteroids - using physics process collision detection
 func check_asteroid_collisions():
-	# Get all bodies in the scene that might be asteroids
+	# Method 1: Use built-in move_and_slide collision detection
+	for i in get_slide_collision_count():
+		var collision = get_slide_collision(i)
+		var body = collision.get_collider()
+		
+		if body != null and body != self and body.has_method("take_damage") and (body.is_in_group("asteroids") or "asteroid" in body.name.to_lower()):
+			handle_asteroid_collision(body, collision)
+			return  # Only handle one collision per frame
+	
+	# Method 2: Fallback shape query for additional detection
 	var space_state = get_world_3d().direct_space_state
 	var query = PhysicsShapeQueryParameters3D.new()
 	
-	# Create a small sphere around the player to detect collisions
+	# Create a larger sphere around the player to detect collisions
 	var sphere = SphereShape3D.new()
-	sphere.radius = 2.0  # Adjust based on ship size
+	sphere.radius = 3.5  # Increased from 2.0 for better detection
 	query.shape = sphere
 	query.transform = global_transform
-	query.collision_mask = 1  # Adjust based on asteroid collision layer
+	query.collision_mask = 0xFFFFFFFF  # Check all collision layers instead of just layer 1
+	query.exclude = [self]  # Exclude the player itself
 	
 	var results = space_state.intersect_shape(query)
 	
 	for result in results:
 		var body = result.collider
 		if body != self and body.has_method("take_damage") and (body.is_in_group("asteroids") or "asteroid" in body.name.to_lower()):
-			# Calculate collision damage based on velocity and asteroid size
-			var collision_speed = velocity.length()
-			var asteroid_scale = body.scale.length() / sqrt(3.0)  # Normalize scale vector
-			
-			# Damage to ship (speed * asteroid size factor) - reduced damage
-			var ship_damage = max(collision_speed * asteroid_scale * 0.5, 2.0)  # Minimum 2 damage, reduced multiplier
-			take_hull_damage(ship_damage)
-			
-			# Damage to asteroid (speed * ship mass factor) - reduced damage
-			var asteroid_damage = collision_speed * 1.5  # Reduced from 5.0 to 1.5
-			body.take_damage(asteroid_damage)
-			
-			print("Collision! Ship damage: %.1f, Asteroid damage: %.1f, Speed: %.1f" % [ship_damage, asteroid_damage, collision_speed])
-			
-			# Add collision feedback effects
-			if collision_speed > 2.0:  # Lower threshold for feedback
-				# Screen shake effect (if camera rig exists)
-				var camera_rig = get_node_or_null("../CameraRig")
-				if camera_rig and camera_rig.has_method("add_trauma"):
-					camera_rig.add_trauma(min(collision_speed * 0.1, 1.0))
-				
-				# Push ship away from asteroid
-				var collision_direction = (global_position - body.global_position).normalized()
-				velocity += collision_direction * collision_speed * 0.3
-			
+			# Create a mock collision for consistency
+			handle_asteroid_collision(body, null)
 			break  # Only handle one collision per frame
+
+# Handle the actual collision damage and effects
+func handle_asteroid_collision(asteroid_body: Node3D, collision_info = null):
+	# Calculate collision damage based on velocity and asteroid size
+	var collision_speed = velocity.length()
+	var asteroid_scale = asteroid_body.scale.length() / sqrt(3.0)  # Normalize scale vector
+	
+	# Only process collision if there's significant speed
+	if collision_speed < 1.0:
+		return
+	
+	# Damage to ship (speed * asteroid size factor) - reduced damage
+	var ship_damage = max(collision_speed * asteroid_scale * 0.5, 2.0)  # Minimum 2 damage, reduced multiplier
+	take_hull_damage(ship_damage)
+	
+	# Damage to asteroid (speed * ship mass factor) - reduced damage
+	var asteroid_damage = collision_speed * 1.5  # Reduced from 5.0 to 1.5
+	asteroid_body.take_damage(asteroid_damage, true)  # Pass true to indicate collision damage
+	
+	print("Collision! Ship damage: %.1f, Asteroid damage: %.1f, Speed: %.1f" % [ship_damage, asteroid_damage, collision_speed])
+	
+	# Add collision feedback effects
+	if collision_speed > 2.0:  # Lower threshold for feedback
+		# Screen shake effect (if camera rig exists)
+		var camera_rig = get_node_or_null("../CameraRig")
+		if camera_rig and camera_rig.has_method("add_trauma"):
+			camera_rig.add_trauma(min(collision_speed * 0.1, 1.0))
+		
+		# Push ship away from asteroid (keep Y-axis unchanged)
+		var collision_direction = (global_position - asteroid_body.global_position).normalized()
+		collision_direction.y = 0.0  # Remove Y-axis component to keep ship on same level
+		collision_direction = collision_direction.normalized()  # Re-normalize after removing Y
+		velocity += collision_direction * collision_speed * 0.3
 
 func _input(event):
 	# Handle game over restart
@@ -296,6 +504,8 @@ func _input(event):
 			print("Mouse clicked - restarting game")
 			get_tree().reload_current_scene()
 		return
+	
+	# Removed keyboard refuel input - now handled by UI buttons
 	
 	# Handle right mouse button release to unlock reticle
 	if event is InputEventMouseButton:
@@ -443,6 +653,14 @@ func handle_thrust_audio(thrust_input: float) -> void:
 func _physics_process(delta: float) -> void:
 	var dt = delta
 	
+	# Handle refueling animation
+	if is_refueling:
+		handle_refueling_process(delta)
+	
+	# Handle repair animation
+	if is_repairing:
+		handle_repair_process(delta)
+	
 	# Consume fuel during movement
 	if is_thrusting and current_fuel > 0.0:
 		consume_fuel(2.5 * delta)  # Consume 2.5 fuel per second while thrusting (reduced by half again)
@@ -533,7 +751,6 @@ func update_asteroid_targeting():
 	# Create raycast query
 	var space_state = get_world_3d().direct_space_state
 	var query = PhysicsRayQueryParameters3D.create(from, to)
-	query.collision_mask = 0xFFFFFFFF  # Check all collision layers
 	
 	var result = space_state.intersect_ray(query)
 	
@@ -599,8 +816,17 @@ func on_asteroid_destroyed(destroyed_asteroid: Node3D):
 # Get current cargo space used
 func get_cargo_used() -> float:
 	var total_used = 0.0
-	for amount in inventory.values():
-		total_used += amount
+	
+	# Count minerals in the new mineral inventory
+	for mineral in mineral_inventory:
+		if mineral and mineral.amount > 0:
+			total_used += mineral.amount
+	
+	# Optionally include ingots if present
+	for ingot in ingot_inventory:
+		if typeof(ingot) == TYPE_DICTIONARY and ingot.has("amount"):
+			total_used += float(ingot["amount"])
+	
 	return total_used
 
 # Check if there's enough cargo space for additional minerals
@@ -630,14 +856,24 @@ func collect_minerals(mineral: MineralData) -> void:
 			show_cargo_full_warning()
 			return
 	
-	# Add to inventory
+	# Add to legacy inventory for compatibility
 	if inventory.has(mineral_name):
 		inventory[mineral_name] += amount
 	else:
 		inventory[mineral_name] = amount
 	
-	# Add credits
-	total_credits += credits_earned
+	# Add to new mineral inventory for refinery system
+	var collected_mineral = MineralData.new()
+	collected_mineral.mineral_type = mineral.mineral_type
+	collected_mineral.amount = amount
+	collected_mineral.rarity = mineral.rarity
+	collected_mineral.value_per_unit = mineral.value_per_unit
+	collected_mineral.display_name = mineral.display_name
+	collected_mineral.color = mineral.color
+	collected_mineral.hardness = mineral.hardness
+	add_mineral(collected_mineral)
+	
+	# Credits will be earned when selling ore at planets
 	
 	# Update UI if available
 	var ui_manager = get_tree().get_first_node_in_group("ui_manager")
@@ -674,16 +910,26 @@ func collect_multi_minerals(multi_mineral: MultiMineralData) -> void:
 		var amount = mineral.amount
 		var credits_earned = int(amount * mineral.value_per_unit)
 		
-		# Add to inventory
+		# Add to legacy inventory for compatibility
 		if inventory.has(mineral_name):
 			inventory[mineral_name] += amount
 		else:
 			inventory[mineral_name] = amount
 		
+		# Add to new mineral inventory for refinery system
+		var collected_mineral = MineralData.new()
+		collected_mineral.mineral_type = mineral.mineral_type
+		collected_mineral.amount = amount
+		collected_mineral.rarity = mineral.rarity
+		collected_mineral.value_per_unit = mineral.value_per_unit
+		collected_mineral.display_name = mineral.display_name
+		collected_mineral.color = mineral.color
+		collected_mineral.hardness = mineral.hardness
+		add_mineral(collected_mineral)
+		
 		total_credits_earned += credits_earned
 	
-	# Add total credits
-	total_credits += total_credits_earned
+	# Credits will be earned when selling ore at planets
 	
 	# Update UI if available
 	var ui_manager = get_tree().get_first_node_in_group("ui_manager")
@@ -742,26 +988,208 @@ func stop_asteroid_scan():
 	is_scanning_asteroid = false
 	asteroid_info_instance.stop_scan()
 
+# Planet collision handlers - called by planet when ship enters/exits scan range
+func on_planet_scan_range_entered(planet: Node3D):
+	print("Planet scan range entered: ", planet.name)
+	current_planet_in_range = planet
+	if planet_data_ui_instance:
+		planet_data_ui_instance.visible = true
+		planet_data_ui_instance.display_planet_data(planet)
+	
+	# Show services UI if planet has any services
+	if planet_services_ui_instance:
+		var has_services = (planet.get("has_fuel_depot") and planet.has_fuel_depot) or (planet.get("has_repair_bay") and planet.has_repair_bay)
+		if has_services:
+			planet_services_ui_instance.show_services(planet, self)
+
+func on_planet_scan_range_exited(planet: Node3D):
+	print("Planet scan range exited: ", planet.name)
+	if current_planet_in_range == planet:
+		current_planet_in_range = null
+		
+		# Hide planet data UI when leaving range
+		if planet_data_ui_instance:
+			planet_data_ui_instance.visible = false
+			planet_data_ui_instance.clear_planet_data()
+		
+		# Hide services UI when leaving range
+		if planet_services_ui_instance:
+			planet_services_ui_instance.hide_services()
+			print("Hiding planet data")
+
+# Show fuel depot message and handle refueling
+func show_fuel_depot_message(planet: Node3D):
+	var depot_name = planet.get("depot_name") if planet.get("depot_name") else "Fuel Depot"
+	var cost_per_unit = planet.get("fuel_cost_per_unit") if planet.get("fuel_cost_per_unit") else 2
+	
+	print("=== FUEL DEPOT AVAILABLE ===")
+	print(depot_name, " - Fuel Cost: ", cost_per_unit, " credits per unit")
+	print("Current Fuel: ", current_fuel, "/", max_fuel)
+	print("Credits Available: ", total_credits)
+	print("Press 'F' to refuel (will fill tank completely)")
+
+# Handle fuel purchase (integrated into existing _input function)
+
+# Attempt to purchase fuel from planet depot
+func attempt_refuel(planet: Node3D):
+	if is_refueling:
+		print("Already refueling...")
+		return
+		
+	var cost_per_unit = planet.get("fuel_cost_per_unit") if planet.get("fuel_cost_per_unit") else 2
+	var fuel_needed = max_fuel - current_fuel
+	var total_cost = int(fuel_needed * cost_per_unit)
+	
+	if fuel_needed <= 0.1:
+		print("Fuel tank is already full!")
+		return
+	
+	if total_credits >= total_cost:
+		# Start animated refueling
+		total_credits -= total_cost
+		start_refueling(fuel_needed)
+		print("Starting refuel... Cost: ", total_cost, " credits")
+		print("Remaining credits: ", total_credits)
+		
+		# Update UI if available
+		var ui_manager = get_node_or_null("../UI/UIManager")
+		if ui_manager and ui_manager.has_method("update_inventory_display"):
+			ui_manager.update_inventory_display()
+	else:
+		print("Insufficient credits! Need ", total_cost, " credits, have ", total_credits)
+		print("Fuel needed: ", fuel_needed, " units at ", cost_per_unit, " credits each")
+
+# Start the refueling animation process
+func start_refueling(fuel_amount: float):
+	is_refueling = true
+	refuel_start_fuel = current_fuel
+	refuel_target_fuel = current_fuel + fuel_amount
+	refuel_message_timer = 0.0
+	print("=== REFUELING ===")
+	print("Connecting to fuel depot...")
+
+# Handle the gradual refueling process
+func handle_refueling_process(delta: float):
+	refuel_message_timer += delta
+	
+	# Show refueling messages
+	if int(refuel_message_timer) % 2 == 0 and refuel_message_timer - int(refuel_message_timer) < delta:
+		print("REFUELING... ", int((current_fuel / max_fuel) * 100), "% complete")
+	
+	# Gradually increase fuel
+	var fuel_increase = refuel_speed * delta
+	current_fuel = min(refuel_target_fuel, current_fuel + fuel_increase)
+	
+	# Check if refueling is complete
+	if current_fuel >= refuel_target_fuel:
+		complete_refueling()
+
+# Complete the refueling process
+func complete_refueling():
+	is_refueling = false
+	current_fuel = refuel_target_fuel
+	print("=== REFUELING COMPLETE ===")
+	print("Fuel tank full: ", current_fuel, "/", max_fuel)
+	print("Disconnecting from fuel depot...")
+	
+	# Update services UI to reflect new fuel level
+	if planet_services_ui_instance and current_planet_in_range:
+		planet_services_ui_instance.show_services(current_planet_in_range, self)
+
+# Attempt to repair hull at planet repair bay
+func attempt_repair(planet: Node3D):
+	if is_repairing:
+		print("Already repairing...")
+		return
+		
+	if not planet.get("has_repair_bay") or not planet.has_repair_bay:
+		print("No repair bay available at this planet!")
+		return
+	
+	var repair_cost_per_unit = planet.get("repair_cost_per_unit") if planet.get("repair_cost_per_unit") else 3
+	var hull_damage = max_hull_integrity - current_hull_integrity
+	var total_cost = int(hull_damage * repair_cost_per_unit)
+	
+	if hull_damage <= 0.1:
+		print("Hull is already at full integrity!")
+		return
+	
+	if total_credits >= total_cost:
+		# Start animated repair
+		total_credits -= total_cost
+		start_repair(hull_damage)
+		print("Starting repair... Cost: ", total_cost, " credits")
+		print("Remaining credits: ", total_credits)
+		
+		# Update UI if available
+		var ui_manager = get_node_or_null("../UI/UIManager")
+		if ui_manager and ui_manager.has_method("update_inventory_display"):
+			ui_manager.update_inventory_display()
+	else:
+		print("Insufficient credits! Need ", total_cost, " credits, have ", total_credits)
+		print("Hull damage: ", hull_damage, " units at ", repair_cost_per_unit, " credits each")
+
+# Start the repair animation process
+func start_repair(repair_amount: float):
+	is_repairing = true
+	repair_start_hull = current_hull_integrity
+	repair_target_hull = current_hull_integrity + repair_amount
+	repair_message_timer = 0.0
+	print("=== HULL REPAIR ===")
+	print("Connecting to repair bay...")
+
+# Handle the gradual repair process
+func handle_repair_process(delta: float):
+	repair_message_timer += delta
+	
+	# Show repair messages
+	if int(repair_message_timer) % 2 == 0 and repair_message_timer - int(repair_message_timer) < delta:
+		print("REPAIRING... ", int((current_hull_integrity / max_hull_integrity) * 100), "% hull integrity")
+	
+	# Gradually increase hull integrity
+	var hull_increase = repair_speed * delta
+	current_hull_integrity = min(repair_target_hull, current_hull_integrity + hull_increase)
+	
+	# Check if repair is complete
+	if current_hull_integrity >= repair_target_hull:
+		complete_repair()
+
+# Complete the repair process
+func complete_repair():
+	is_repairing = false
+	current_hull_integrity = repair_target_hull
+	print("=== HULL REPAIR COMPLETE ===")
+	print("Hull integrity: ", current_hull_integrity, "/", max_hull_integrity)
+	print("Disconnecting from repair bay...")
+	
+	# Update services UI to reflect new hull level
+	if planet_services_ui_instance and current_planet_in_range:
+		planet_services_ui_instance.show_services(current_planet_in_range, self)
+
 # Get inventory summary
 func get_inventory_summary() -> String:
 	var summary = "=== SPACE MINER INVENTORY ===\n"
 	summary += "Total Credits: %d\n" % total_credits
 	summary += "Cargo Space: %.1f/%.1f units\n" % [get_cargo_used(), max_cargo_space]
 	summary += "─────────────────────────────\n"
-	
-	if inventory.is_empty():
-		summary += "No minerals collected yet.\n\n"
-		summary += "Instructions:\n"
-		summary += "• Hover over asteroids to see minerals\n"
-		summary += "• Left click to fire lasers and mine\n"
-		summary += "• Right click + mouse to steer\n"
-		summary += "• W key for thrust\n"
-		summary += "• Tab to toggle this inventory"
+
+	# Build a grouped view of minerals from the new mineral_inventory
+	var grouped: Dictionary = {}
+	for mineral in mineral_inventory:
+		if mineral:
+			var name: String = mineral.display_name
+			if grouped.has(name):
+				grouped[name] += mineral.amount
+			else:
+				grouped[name] = mineral.amount
+
+	if grouped.is_empty():
+		summary += "No minerals collected yet.\n"
 	else:
 		summary += "Collected Minerals:\n"
-		for mineral_name in inventory.keys():
-			summary += "• %s: %.1f units\n" % [mineral_name, inventory[mineral_name]]
-	
+		for mineral_name in grouped.keys():
+			summary += "• %s: %.1f units\n" % [mineral_name, float(grouped[mineral_name])]
+
 	return summary
 
 # Show visual warning when cargo is full
@@ -812,3 +1240,38 @@ func show_boundary_warning():
 	var tween = create_tween()
 	tween.tween_property(warning_label, "modulate:a", 0.0, 1.5)
 	tween.tween_callback(warning_label.queue_free)
+
+# Mineral inventory management methods for refinery system
+func get_mineral_inventory() -> Array[MineralData]:
+	return mineral_inventory
+
+func add_mineral(mineral: MineralData) -> void:
+	if mineral and mineral.amount > 0:
+		mineral_inventory.append(mineral)
+
+func remove_mineral(mineral_name: String, amount: float = -1) -> void:
+	# Remove specific amount of a mineral by name, or all if amount is -1
+	for i in range(mineral_inventory.size() - 1, -1, -1):
+		var mineral = mineral_inventory[i]
+		if mineral.display_name == mineral_name:
+			if amount < 0:
+				# Remove all entries with this name (continue scanning)
+				mineral_inventory.remove_at(i)
+				continue
+			elif amount >= mineral.amount:
+				mineral_inventory.remove_at(i)
+				return
+			else:
+				mineral.amount -= amount
+				return
+
+func add_ingot(ingot: Dictionary) -> void:
+	if ingot and ingot.has("amount") and ingot.amount > 0:
+		ingot_inventory.append(ingot)
+
+func get_ingot_inventory() -> Array:
+	return ingot_inventory
+
+func remove_ingot(ingot: Dictionary) -> void:
+	if ingot in ingot_inventory:
+		ingot_inventory.erase(ingot)
