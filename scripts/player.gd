@@ -1070,19 +1070,42 @@ func start_refueling(fuel_amount: float):
 
 # Handle the gradual refueling process
 func handle_refueling_process(delta: float):
+	# Stop refueling if player moves away from the planet
+	if not current_planet_in_range:
+		stop_refueling()
+		return
+
 	refuel_message_timer += delta
-	
+
 	# Show refueling messages
 	if int(refuel_message_timer) % 2 == 0 and refuel_message_timer - int(refuel_message_timer) < delta:
-		print("REFUELING... ", int((current_fuel / max_fuel) * 100), "% complete")
-	
+		var ui_manager = get_tree().current_scene.get_node_or_null("UI/UIManager")
+		if ui_manager:
+			ui_manager.show_collection_notification("Refueling... %.0f / %.0f" % [current_fuel, max_fuel])
+
 	# Gradually increase fuel
 	var fuel_increase = refuel_speed * delta
 	current_fuel = min(refuel_target_fuel, current_fuel + fuel_increase)
-	
+
 	# Check if refueling is complete
 	if current_fuel >= refuel_target_fuel:
 		complete_refueling()
+
+# Stop the refueling process
+func stop_refueling():
+	if not is_refueling:
+		return
+
+	is_refueling = false
+	print("Refueling interrupted: Ship moved out of range.")
+
+	var ui_manager = get_tree().current_scene.get_node_or_null("UI/UIManager")
+	if ui_manager:
+		ui_manager.show_collection_notification("Refueling cancelled: Out of range")
+
+	# Update services UI to reflect the current state
+	if planet_services_ui_instance and current_planet_in_range:
+		planet_services_ui_instance.show_services(current_planet_in_range, self)
 
 # Complete the refueling process
 func complete_refueling():
@@ -1091,7 +1114,11 @@ func complete_refueling():
 	print("=== REFUELING COMPLETE ===")
 	print("Fuel tank full: ", current_fuel, "/", max_fuel)
 	print("Disconnecting from fuel depot...")
-	
+
+	var ui_manager = get_tree().current_scene.get_node_or_null("UI/UIManager")
+	if ui_manager:
+		ui_manager.show_collection_notification("Refueling complete!")
+
 	# Update services UI to reflect new fuel level
 	if planet_services_ui_instance and current_planet_in_range:
 		planet_services_ui_instance.show_services(current_planet_in_range, self)
@@ -1140,31 +1167,58 @@ func start_repair(repair_amount: float):
 
 # Handle the gradual repair process
 func handle_repair_process(delta: float):
+	# Stop repairing if player moves away from the planet
+	if not current_planet_in_range:
+		stop_repair()
+		return
+
 	repair_message_timer += delta
-	
+
 	# Show repair messages
 	if int(repair_message_timer) % 2 == 0 and repair_message_timer - int(repair_message_timer) < delta:
-		print("REPAIRING... ", int((current_hull_integrity / max_hull_integrity) * 100), "% hull integrity")
-	
+		var ui_manager = get_tree().current_scene.get_node_or_null("UI/UIManager")
+		if ui_manager:
+			ui_manager.show_collection_notification("Repairing... %.0f / %.0f" % [current_hull_integrity, max_hull_integrity])
+
 	# Gradually increase hull integrity
-	var hull_increase = repair_speed * delta
-	current_hull_integrity = min(repair_target_hull, current_hull_integrity + hull_increase)
-	
+	var repair_increase = repair_speed * delta
+	current_hull_integrity = min(repair_target_hull, current_hull_integrity + repair_increase)
+
 	# Check if repair is complete
 	if current_hull_integrity >= repair_target_hull:
 		complete_repair()
+
+# Stop the repair process
+func stop_repair():
+	if not is_repairing:
+		return
+
+	is_repairing = false
+	print("Repair interrupted: Ship moved out of range.")
+
+	var ui_manager = get_tree().current_scene.get_node_or_null("UI/UIManager")
+	if ui_manager:
+		ui_manager.show_collection_notification("Repair cancelled: Out of range")
+
+	# Update services UI to reflect the current state
+	if planet_services_ui_instance and current_planet_in_range:
+		planet_services_ui_instance.show_services(current_planet_in_range, self)
 
 # Complete the repair process
 func complete_repair():
 	is_repairing = false
 	current_hull_integrity = repair_target_hull
-	print("=== HULL REPAIR COMPLETE ===")
-	print("Hull integrity: ", current_hull_integrity, "/", max_hull_integrity)
+	print("=== REPAIR COMPLETE ===")
+	print("Hull integrity restored: ", current_hull_integrity, "/", max_hull_integrity)
 	print("Disconnecting from repair bay...")
 	
 	# Update services UI to reflect new hull level
 	if planet_services_ui_instance and current_planet_in_range:
 		planet_services_ui_instance.show_services(current_planet_in_range, self)
+
+	var ui_manager = get_tree().current_scene.get_node_or_null("UI/UIManager")
+	if ui_manager:
+		ui_manager.show_collection_notification("Repair complete!")
 
 # Get inventory summary
 func get_inventory_summary() -> String:
